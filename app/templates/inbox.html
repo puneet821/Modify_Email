@@ -84,4 +84,29 @@
         </div>
     {% endif %}
 </div>
+
+<!-- Local Device Sync & Recovery -->
+<script id="email-data" type="application/json">
+[
+    {% for email in emails %}
+    {
+        "id": "{{ email.pk }}",
+        "sender": "{{ email.sender|escapejs }}",
+        "subject": "{{ email.subject|escapejs }}",
+        "body": "{{ email.body|escapejs }}",
+        "snippet": "{{ email.snippet|escapejs }}",
+        "date": "{{ email.received_date|date:'M d' }}",
+        "is_read": {{ email.is_read|yesno:"true,false" }},
+        "is_starred": {{ email.is_starred|yesno:"true,false" }},
+        "detail_url": "{% url 'app:email_detail' email.pk %}",
+        "delete_url": "{% url 'app:delete_email' email.pk %}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+]
+</script>
+
+<script>
+    // Flag to handle search state in JS recovery
+    window.is_search = {{ query|yesno:"true,false" }};
+</script>
 {% endblock %}
