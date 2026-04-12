@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Inbox{% endblock %} - Gmail Clone</title>
+    <meta name="description" content="Gmail Clone — compose and view self-addressed emails with custom dates">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    
+    <!-- Floating Action Button (Mobile) -->
+    <a href="{% url 'app:compose' %}" class="fab" id="mobile-compose-fab" title="Compose">
+        <span class="material-icons-outlined">edit</span>
+    </a>
+
+    <!-- ===== TOP HEADER BAR ===== -->
+    <header class="header" id="main-header">
+        <div class="header-left">
+            <button class="icon-btn sidebar-toggle" id="sidebar-toggle" title="Main menu">
+                <span class="material-icons-outlined">menu</span>
+            </button>
+            <a href="{% url 'app:inbox' %}" class="logo" id="logo-link">
+                <!-- Authentic Gmail Logo SVG -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="gmail-logo">
+                    <path d="M1.5 5V17.5C1.5 18.6 2.4 19.5 3.5 19.5H20.5C21.6 19.5 22.5 18.6 22.5 17.5V5M1.5 5L12 11.5L22.5 5M1.5 5C1.5 3.9 2.4 3 3.5 3H20.5C21.6 3 22.5 3.9 22.5 5" stroke="#EA4335" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M22.5 5L12 11.5L1.5 5" stroke="#EA4335" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M1.5 17.5V5" stroke="#4285F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M22.5 17.5V5" stroke="#34A853" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M1.5 17.5H3.5" stroke="#4285F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M20.5 17.5H22.5" stroke="#34A853" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="logo-text">Gmail</span>
+            </a>
+        </div>
+        <div class="header-center">
+            <form class="search-bar" action="{% url 'app:inbox' %}" method="GET" id="search-form">
+                <button type="submit" class="icon-btn search-icon" id="search-btn">
+                    <span class="material-icons-outlined">search</span>
+                </button>
+                <input 
+                    type="text" 
+                    name="q" 
+                    placeholder="Search mail" 
+                    class="search-input"
+                    id="search-input"
+                    value="{{ query|default:'' }}"
+                    autocomplete="off"
+                >
+            </form>
+        </div>
+        <div class="header-right">
+            <button class="icon-btn" title="Settings" id="settings-btn">
+                <span class="material-icons-outlined">settings</span>
+            </button>
+            <div class="avatar-container" id="avatar-container">
+                <div class="avatar" id="user-avatar" title="Google Account">M</div>
+                <div class="profile-menu" id="profile-menu">
+                    <div class="profile-info">
+                        <div class="large-avatar" id="large-avatar">M</div>
+                        <div class="user-details">
+                            <span class="user-name">Google User</span>
+                            <span class="user-email">user@gmail.com</span>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="alphabet-selector">
+                        <label for="initial-input">Select your initial:</label>
+                        <div class="input-group">
+                            <input type="text" id="initial-input" maxlength="1" placeholder="M" value="M">
+                            <button id="update-initial-btn">Update</button>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <a href="https://github.com/puneet821" target="_blank" class="menu-item">
+                        <span class="material-icons-outlined">account_circle</span>
+                        Manage your Google Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-body">
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar" id="sidebar">
+            <a href="{% url 'app:compose' %}" class="compose-btn" id="compose-btn">
+                <span class="material-icons-outlined">edit</span>
+                <span class="compose-text">Compose</span>
+            </a>
+
+            <nav class="nav-list" id="nav-list">
+                <a href="{% url 'app:inbox' %}" class="nav-item {% if request.resolver_match.url_name == 'inbox' %}active{% endif %}" id="nav-inbox">
+                    <span class="material-icons-outlined">inbox</span>
+                    <span class="nav-label">Inbox</span>
+                    {% if unread_count %}
+                    <span class="nav-badge">{{ unread_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="#" class="nav-item" id="nav-starred">
+                    <span class="material-icons-outlined">star_border</span>
+                    <span class="nav-label">Starred</span>
+                </a>
+                <a href="#" class="nav-item" id="nav-sent">
+                    <span class="material-icons-outlined">send</span>
+                    <span class="nav-label">Sent</span>
+                </a>
+                <a href="#" class="nav-item" id="nav-drafts">
+                    <span class="material-icons-outlined">drafts</span>
+                    <span class="nav-label">Drafts</span>
+                </a>
+                <a href="#" class="nav-item" id="nav-trash">
+                    <span class="material-icons-outlined">delete</span>
+                    <span class="nav-label">Trash</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="main-content" id="main-content">
+            {% if messages %}
+            <div class="toast-container" id="toast-container">
+                {% for message in messages %}
+                <div class="toast toast-{{ message.tags }}" id="toast-{{ forloop.counter }}">
+                    <span class="material-icons-outlined">
+                        {% if message.tags == 'success' %}check_circle{% elif message.tags == 'info' %}info{% else %}warning{% endif %}
+                    </span>
+                    <span>{{ message }}</span>
+                    <button class="toast-close" onclick="this.parentElement.remove()">
+                        <span class="material-icons-outlined">close</span>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script src="{% static 'app.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Inbox{% endblock %}
+
+{% block content %}
+<!-- Inbox Toolbar -->
+<div class="inbox-toolbar" id="inbox-toolbar">
+    <div class="toolbar-left">
+        <label class="checkbox-wrapper" id="select-all-wrapper">
+            <input type="checkbox" id="select-all">
+            <span class="checkmark"></span>
+        </label>
+        <button class="icon-btn" title="Refresh" onclick="location.reload()" id="refresh-btn">
+            <span class="material-icons-outlined">refresh</span>
+        </button>
+        <button class="icon-btn" title="More" id="more-btn">
+            <span class="material-icons-outlined">more_vert</span>
+        </button>
+    </div>
+    <div class="toolbar-right">
+        <span class="email-count" id="email-count">
+            {% if emails %}1–{{ emails|length }} of {{ total_count }}{% else %}No conversations{% endif %}
+        </span>
+    </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar" id="tab-bar">
+    <button class="tab active" id="tab-primary">
+        <span class="material-icons-outlined">inbox</span>
+        <span>Primary</span>
+    </button>
+    <button class="tab" id="tab-promotions">
+        <span class="material-icons-outlined">sell</span>
+        <span>Promotions</span>
+    </button>
+    <button class="tab" id="tab-social">
+        <span class="material-icons-outlined">people</span>
+        <span>Social</span>
+    </button>
+</div>
+
+<!-- Email List -->
+<div class="email-list" id="email-list">
+    {% if emails %}
+        {% for email in emails %}
+        <div class="email-row {% if not email.is_read %}unread{% endif %}" id="email-row-{{ email.pk }}">
+            <div class="email-row-left">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" class="email-checkbox" data-id="{{ email.pk }}">
+                    <span class="checkmark"></span>
+                </label>
+                <a href="{% url 'app:toggle_star' email.pk %}" class="star-btn {% if email.is_starred %}starred{% endif %}" title="Star" id="star-{{ email.pk }}">
+                    <span class="material-icons-outlined">
+                        {% if email.is_starred %}star{% else %}star_border{% endif %}
+                    </span>
+                </a>
+            </div>
+            <a href="{% url 'app:email_detail' email.pk %}" class="email-row-link" id="email-link-{{ email.pk }}">
+                <span class="email-sender">{{ email.sender }}</span>
+                <div class="email-content-preview">
+                    <span class="email-subject">{{ email.subject }}</span>
+                    <span class="email-snippet"> — {{ email.snippet }}</span>
+                </div>
+                <span class="email-date">{{ email.received_date|date:"M d" }}</span>
+            </a>
+            <div class="email-row-actions">
+                <a href="{% url 'app:delete_email' email.pk %}" class="icon-btn delete-action" title="Delete" id="delete-{{ email.pk }}">
+                    <span class="material-icons-outlined">delete</span>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-inbox" id="empty-inbox">
+            <span class="material-icons-outlined empty-icon">mark_email_read</span>
+            {% if query %}
+                <h2>No results for "{{ query }}"</h2>
+                <p>Try different keywords or <a href="{% url 'app:inbox' %}">clear search</a></p>
+            {% else %}
+                <h2>Your inbox is empty</h2>
+                <p>Emails you compose will appear here. <a href="{% url 'app:compose' %}">Compose your first email!</a></p>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

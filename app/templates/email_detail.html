@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ email.subject }}{% endblock %}
+
+{% block content %}
+<div class="email-view" id="email-view">
+    <!-- Toolbar -->
+    <div class="email-view-toolbar" id="email-view-toolbar">
+        <a href="{% url 'app:inbox' %}" class="icon-btn" title="Back to inbox" id="back-btn">
+            <span class="material-icons-outlined">arrow_back</span>
+        </a>
+        <div class="email-view-actions">
+            <a href="{% url 'app:toggle_star' email.pk %}" class="icon-btn {% if email.is_starred %}starred{% endif %}" title="Star" id="detail-star-btn">
+                <span class="material-icons-outlined">
+                    {% if email.is_starred %}star{% else %}star_border{% endif %}
+                </span>
+            </a>
+            <a href="{% url 'app:delete_email' email.pk %}" class="icon-btn" title="Delete" id="detail-delete-btn">
+                <span class="material-icons-outlined">delete</span>
+            </a>
+            <button class="icon-btn" title="Mark unread" id="mark-unread-btn">
+                <span class="material-icons-outlined">mark_email_unread</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Email Content -->
+    <div class="email-view-content" id="email-view-content">
+        <h1 class="email-view-subject" id="email-subject-heading">{{ email.subject }}</h1>
+
+        <div class="email-view-meta" id="email-view-meta">
+            <div class="sender-avatar" id="sender-avatar">
+                {{ email.sender|first|upper }}
+            </div>
+            <div class="sender-info">
+                <div class="sender-name-line">
+                    <strong class="sender-name">{{ email.sender }}</strong>
+                    <span class="sender-email">&lt;{{ email.sender|slugify }}@gmail.com&gt;</span>
+                </div>
+                <div class="recipient-line">
+                    to <span class="recipient">me</span>
+                    <span class="material-icons-outlined expand-icon">expand_more</span>
+                </div>
+            </div>
+            <div class="email-date-full" id="email-date-full">
+                {{ email.received_date|date:"M d, Y, g:i A" }}
+                <span class="relative-date">({{ email.received_date|timesince }} ago)</span>
+            </div>
+        </div>
+
+        <div class="email-body" id="email-body">
+            {{ email.body|linebreaksbr }}
+        </div>
+    </div>
+
+    <!-- Reply bar -->
+    <div class="reply-bar" id="reply-bar">
+        <button class="reply-btn" id="reply-btn">
+            <span class="material-icons-outlined">reply</span>
+            Reply
+        </button>
+        <button class="reply-btn" id="forward-btn">
+            <span class="material-icons-outlined">shortcut</span>
+            Forward
+        </button>
+    </div>
+</div>
+{% endblock %}

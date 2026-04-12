@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Compose{% endblock %}
+
+{% block content %}
+<div class="compose-page" id="compose-page">
+    <div class="compose-card" id="compose-card">
+        <div class="compose-header" id="compose-header">
+            <h2>New Message</h2>
+            <a href="{% url 'app:inbox' %}" class="icon-btn" title="Discard" id="discard-btn">
+                <span class="material-icons-outlined">close</span>
+            </a>
+        </div>
+
+        <form method="POST" action="{% url 'app:compose' %}" class="compose-form" id="compose-form">
+            {% csrf_token %}
+
+            <div class="form-row" id="sender-row">
+                <label for="sender" class="form-label">From</label>
+                {{ form.sender }}
+            </div>
+
+            <div class="form-divider"></div>
+
+            <div class="form-row" id="subject-row">
+                <label for="subject" class="form-label">Subject</label>
+                {{ form.subject }}
+            </div>
+
+            <div class="form-divider"></div>
+
+            <div class="form-row date-row" id="date-row">
+                <label for="received-date" class="form-label">
+                    <span class="material-icons-outlined">schedule</span>
+                    Received Date
+                </label>
+                {{ form.received_date }}
+                <span class="date-hint">Set when this email should appear as received</span>
+            </div>
+
+            <div class="form-divider"></div>
+
+            <div class="form-row body-row" id="body-row">
+                {{ form.body }}
+            </div>
+
+            {% if form.errors %}
+            <div class="form-errors" id="form-errors">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <p class="error-msg">
+                        <span class="material-icons-outlined">error</span>
+                        {{ field|title }}: {{ error }}
+                    </p>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="compose-footer" id="compose-footer">
+                <button type="submit" class="send-btn" id="send-btn">
+                    <span>Send</span>
+                    <span class="material-icons-outlined">send</span>
+                </button>
+                <div class="footer-actions">
+                    <button type="button" class="icon-btn" title="Formatting" id="format-btn">
+                        <span class="material-icons-outlined">text_format</span>
+                    </button>
+                    <button type="button" class="icon-btn" title="Attach" id="attach-btn">
+                        <span class="material-icons-outlined">attach_file</span>
+                    </button>
+                    <button type="button" class="icon-btn" title="Insert emoji" id="emoji-btn">
+                        <span class="material-icons-outlined">mood</span>
+                    </button>
+                    <a href="{% url 'app:inbox' %}" class="icon-btn" title="Discard draft" id="trash-draft-btn">
+                        <span class="material-icons-outlined">delete</span>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
