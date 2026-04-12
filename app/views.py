@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Email
+from .models import Email, Attachment
 from .forms import ComposeEmailForm
 
 
@@ -26,7 +26,7 @@ def inbox(request):
 def compose(request):
     """Compose and send a new self-email."""
     if request.method == 'POST':
-        form = ComposeEmailForm(request.POST)
+        form = ComposeEmailForm(request.POST, request.FILES)
         if form.is_valid():
             email = form.save(commit=False)
             if not email.sender.strip():
@@ -34,12 +34,27 @@ def compose(request):
             if not email.subject.strip():
                 email.subject = '(no subject)'
             email.save()
+
+            # Handle attachments
+            files = request.FILES.getlist('attachments')
+            for f in files:
+                Attachment.objects.create(
+                    email=email,
+                    file=f,
+                    filename=f.name,
+                    file_size=f.size
+                )
+
             messages.success(request, f'Email "{email.subject}" delivered to inbox!')
             return redirect('app:inbox')
     else:
         form = ComposeEmailForm()
 
-    return render(request, 'compose.html', {'form': form})
+    context = {
+        'form': form,
+        'unread_count': Email.objects.filter(is_read=False).count(),
+    }
+    return render(request, 'compose.html', context)
 
 
 def email_detail(request, pk):
@@ -48,7 +63,10 @@ def email_detail(request, pk):
     if not email.is_read:
         email.is_read = True
         email.save(update_fields=['is_read'])
-    return render(request, 'email_detail.html', {'email': email})
+    return render(request, 'email_detail.html', {
+        'email': email,
+        'unread_count': Email.objects.filter(is_read=False).count(),
+    })
 
 
 def toggle_star(request, pk):

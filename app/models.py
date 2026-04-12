@@ -39,3 +39,17 @@ class Email(models.Model):
     def snippet(self):
         """Return first 100 chars of body for inbox preview."""
         return self.body[:100] + ('…' if len(self.body) > 100 else '')
+
+
+class Attachment(models.Model):
+    """File attachment for an email."""
+    email = models.ForeignKey(
+        Email, related_name='attachments', on_delete=models.CASCADE
+    )
+    file = models.FileField(upload_to='attachments/%Y/%m/%d/')
+    filename = models.CharField(max_length=255)
+    file_size = models.BigIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.filename} ({self.email.subject})"

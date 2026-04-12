@@ -51,6 +51,33 @@
         <div class="email-body" id="email-body">
             {{ email.body|linebreaksbr }}
         </div>
+
+        {% if email.attachments.exists %}
+        <div class="attachments-section" id="attachments-section">
+            <div class="attachments-header">
+                <span class="material-icons-outlined">attach_file</span>
+                <span>{{ email.attachments.count }} attachment{{ email.attachments.count|pluralize }}</span>
+            </div>
+            <div class="attachments-grid">
+                {% for attachment in email.attachments.all %}
+                <div class="attachment-item">
+                    <div class="attachment-icon">
+                        <span class="material-icons-outlined">insert_drive_file</span>
+                    </div>
+                    <div class="attachment-detail">
+                        <div class="attachment-name">{{ attachment.filename }}</div>
+                        <div class="attachment-meta">
+                            {{ attachment.file_size|filesizeformat }}
+                            <a href="{{ attachment.file.url }}" download class="attachment-download">
+                                Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Reply bar -->

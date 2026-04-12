@@ -12,7 +12,7 @@
             </a>
         </div>
 
-        <form method="POST" action="{% url 'app:compose' %}" class="compose-form" id="compose-form">
+        <form method="POST" action="{% url 'app:compose' %}" class="compose-form" id="compose-form" enctype="multipart/form-data">
             {% csrf_token %}
 
             <div class="form-row" id="sender-row">
@@ -32,13 +32,21 @@
             <div class="form-row date-row" id="date-row">
                 <label for="received-date" class="form-label">
                     <span class="material-icons-outlined">schedule</span>
-                    Received Date
                 </label>
                 {{ form.received_date }}
-                <span class="date-hint">Set when this email should appear as received</span>
+                <span class="date-hint">Custom Date</span>
             </div>
 
             <div class="form-divider"></div>
+
+            <div class="form-row" id="attachments-row" style="display: none;">
+                <label for="attachments" class="form-label">
+                    <span class="material-icons-outlined">attach_file</span>
+                </label>
+                {{ form.attachments }}
+            </div>
+
+            <div class="attachments-preview" id="attachments-preview"></div>
 
             <div class="form-row body-row" id="body-row">
                 {{ form.body }}
@@ -66,7 +74,7 @@
                     <button type="button" class="icon-btn" title="Formatting" id="format-btn">
                         <span class="material-icons-outlined">text_format</span>
                     </button>
-                    <button type="button" class="icon-btn" title="Attach" id="attach-btn">
+                    <button type="button" class="icon-btn" title="Attach" id="attach-trigger-btn">
                         <span class="material-icons-outlined">attach_file</span>
                     </button>
                     <button type="button" class="icon-btn" title="Insert emoji" id="emoji-btn">
@@ -78,6 +86,38 @@
                 </div>
             </div>
         </form>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const attachBtn = document.getElementById('attach-trigger-btn');
+                const fileInput = document.querySelector('input[name="attachments"]');
+                const preview = document.getElementById('attachments-preview');
+
+                if (attachBtn && fileInput) {
+                    attachBtn.addEventListener('click', () => fileInput.click());
+
+                    fileInput.addEventListener('change', () => {
+                        preview.innerHTML = '';
+                        if (fileInput.files.length > 0) {
+                            preview.style.display = 'block';
+                            for (let i = 0; i < fileInput.files.length; i++) {
+                                const file = fileInput.files[i];
+                                const chip = document.createElement('div');
+                                chip.className = 'attachment-chip';
+                                chip.innerHTML = `
+                                    <span class="material-icons-outlined">insert_drive_file</span>
+                                    <span>${file.name}</span>
+                                    <small>(${(file.size / 1024).toFixed(1)} KB)</small>
+                                `;
+                                preview.appendChild(chip);
+                            }
+                        } else {
+                            preview.style.display = 'none';
+                        }
+                    });
+                }
+            });
+        </script>
     </div>
 </div>
 {% endblock %}
