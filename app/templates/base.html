@@ -92,26 +92,26 @@
             </a>
 
             <nav class="nav-list" id="nav-list">
-                <a href="{% url 'app:inbox' %}" class="nav-item {% if request.resolver_match.url_name == 'inbox' %}active{% endif %}" id="nav-inbox">
+                <a href="{% url 'app:inbox' %}" class="nav-item {% if current_folder == 'inbox' %}active{% endif %}" id="nav-inbox">
                     <span class="material-icons-outlined">inbox</span>
                     <span class="nav-label">Inbox</span>
                     {% if unread_count %}
                     <span class="nav-badge">{{ unread_count }}</span>
                     {% endif %}
                 </a>
-                <a href="#" class="nav-item" id="nav-starred">
+                <a href="{% url 'app:inbox' folder='starred' %}" class="nav-item {% if current_folder == 'starred' %}active{% endif %}" id="nav-starred">
                     <span class="material-icons-outlined">star_border</span>
                     <span class="nav-label">Starred</span>
                 </a>
-                <a href="#" class="nav-item" id="nav-sent">
+                <a href="{% url 'app:inbox' folder='sent' %}" class="nav-item {% if current_folder == 'sent' %}active{% endif %}" id="nav-sent">
                     <span class="material-icons-outlined">send</span>
                     <span class="nav-label">Sent</span>
                 </a>
-                <a href="#" class="nav-item" id="nav-drafts">
+                <a href="{% url 'app:inbox' folder='drafts' %}" class="nav-item {% if current_folder == 'drafts' %}active{% endif %}" id="nav-drafts">
                     <span class="material-icons-outlined">drafts</span>
                     <span class="nav-label">Drafts</span>
                 </a>
-                <a href="#" class="nav-item" id="nav-trash">
+                <a href="{% url 'app:inbox' folder='trash' %}" class="nav-item {% if current_folder == 'trash' %}active{% endif %}" id="nav-trash">
                     <span class="material-icons-outlined">delete</span>
                     <span class="nav-label">Trash</span>
                 </a>

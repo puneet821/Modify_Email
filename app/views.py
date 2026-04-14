@@ -1,24 +1,35 @@
+from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Email, Attachment
 from .forms import ComposeEmailForm
 
 
-def inbox(request):
-    """Display all emails in the inbox, newest (by received_date) first."""
+def inbox(request, folder='inbox'):
+    """Display emails in the specified folder, newest (by received_date) first.
+    
+    Special folder 'starred' filters all emails where is_starred=True.
+    """
     query = request.GET.get('q', '')
-    emails = Email.objects.all()
+    
+    if folder == 'starred':
+        emails = Email.objects.filter(is_starred=True).exclude(folder='trash')
+    else:
+        emails = Email.objects.filter(folder=folder)
 
     if query:
-        emails = emails.filter(subject__icontains=query) | emails.filter(
-            body__icontains=query
-        ) | emails.filter(sender__icontains=query)
+        emails = emails.filter(
+            models.Q(subject__icontains=query) | 
+            models.Q(body__icontains=query) | 
+            models.Q(sender__icontains=query)
+        )
 
     context = {
         'emails': emails,
         'query': query,
+        'current_folder': folder,
         'total_count': Email.objects.count(),
-        'unread_count': Email.objects.filter(is_read=False).count(),
+        'unread_count': Email.objects.filter(is_read=False, folder='inbox').count(),
     }
     return render(request, 'inbox.html', context)
 
@@ -33,6 +44,15 @@ def compose(request):
                 email.sender = 'me'
             if not email.subject.strip():
                 email.subject = '(no subject)'
+            
+            # Determine folder (Drafts or Inbox)
+            if 'save_draft' in request.POST:
+                email.folder = 'drafts'
+                success_msg = 'Draft saved.'
+            else:
+                email.folder = 'inbox'
+                success_msg = f'Email "{email.subject}" delivered to inbox!'
+                
             email.save()
 
             # Handle attachments
@@ -45,14 +65,14 @@ def compose(request):
                     file_size=f.size
                 )
 
-            messages.success(request, f'Email "{email.subject}" delivered to inbox!')
+            messages.success(request, success_msg)
             return redirect('app:inbox')
     else:
         form = ComposeEmailForm()
 
     context = {
         'form': form,
-        'unread_count': Email.objects.filter(is_read=False).count(),
+        'unread_count': Email.objects.filter(is_read=False, folder='inbox').count(),
     }
     return render(request, 'compose.html', context)
 
@@ -65,7 +85,7 @@ def email_detail(request, pk):
         email.save(update_fields=['is_read'])
     return render(request, 'email_detail.html', {
         'email': email,
-        'unread_count': Email.objects.filter(is_read=False).count(),
+        'unread_count': Email.objects.filter(is_read=False, folder='inbox').count(),
     })
 
 
@@ -79,8 +99,21 @@ def toggle_star(request, pk):
 
 
 def delete_email(request, pk):
-    """Delete an email."""
+    """Move an email to trash, or delete permanently if already in trash."""
     email = get_object_or_404(Email, pk=pk)
-    email.delete()
-    messages.info(request, 'Email moved to trash.')
-    return redirect('app:inbox')
+    if email.folder == 'trash':
+        email.delete()
+        messages.info(request, 'Email deleted permanently.')
+    else:
+        email.folder = 'trash'
+        email.save(update_fields=['folder'])
+        messages.info(request, 'Email moved to trash.')
+    return redirect(request.META.get('HTTP_REFERER', 'app:inbox'))
+
+
+def empty_trash(request):
+    """Permanently delete all emails in the trash."""
+    if request.method == 'POST':
+        deleted_count = Email.objects.filter(folder='trash').delete()[0]
+        messages.success(request, f'Trash emptied. {deleted_count} messages deleted.')
+    return redirect('app:inbox', folder='trash')

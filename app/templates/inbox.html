@@ -18,6 +18,14 @@
         </button>
     </div>
     <div class="toolbar-right">
+        {% if current_folder == 'trash' and emails %}
+        <form action="{% url 'app:empty_trash' %}" method="POST" style="display:inline;" id="empty-trash-form">
+            {% csrf_token %}
+            <button type="submit" class="text-btn danger" onclick="return confirm('Empty trash permanently?')" id="empty-trash-btn">
+                Empty Trash
+            </button>
+        </form>
+        {% endif %}
         <span class="email-count" id="email-count">
             {% if emails %}1–{{ emails|length }} of {{ total_count }}{% else %}No conversations{% endif %}
         </span>

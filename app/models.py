@@ -27,6 +27,19 @@ class Email(models.Model):
     )
     is_read = models.BooleanField(default=False)
     is_starred = models.BooleanField(default=False)
+    
+    FOLDER_CHOICES = [
+        ('inbox', 'Inbox'),
+        ('sent', 'Sent'),
+        ('drafts', 'Drafts'),
+        ('trash', 'Trash'),
+    ]
+    folder = models.CharField(
+        max_length=10,
+        choices=FOLDER_CHOICES,
+        default='inbox',
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

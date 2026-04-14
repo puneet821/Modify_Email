@@ -965,6 +965,32 @@ input[type="datetime-local"].form-input:focus {
     font-size: 18px;
 }
 
+.text-btn {
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-main);
+    font-size: 14px;
+    font-weight: 500;
+    transition: background var(--transition);
+}
+
+.text-btn:hover {
+    background: var(--bg-hover);
+}
+
+.draft-btn {
+    color: var(--text-secondary);
+    margin-left: 8px;
+}
+
+.text-btn.danger {
+    color: var(--red);
+}
+
+.text-btn.danger:hover {
+    background: #fce8e6;
+}
+
 .footer-actions {
     display: flex;
     gap: 4px;
