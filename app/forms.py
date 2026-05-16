@@ -40,14 +40,41 @@ class ComposeEmailForm(forms.ModelForm):
         label='Attachments',
     )
 
+    confirm_sender_email = forms.EmailField(
+        widget=forms.EmailInput(
+            attrs={
+                'class': 'form-input',
+                'placeholder': 'Confirm sender email',
+                'id': 'confirm-sender-email',
+            }
+        ),
+        label='Confirm Sender Email',
+        help_text='Re-type the sender email for confirmation',
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        sender_email = cleaned_data.get('sender_email')
+        confirm_email = cleaned_data.get('confirm_sender_email')
+
+        if sender_email and confirm_email and sender_email != confirm_email:
+            self.add_error('confirm_sender_email', "Emails do not match.")
+        
+        return cleaned_data
+
     class Meta:
         model = Email
-        fields = ['sender', 'subject', 'body', 'received_date']
+        fields = ['sender', 'sender_email', 'subject', 'body', 'received_date']
         widgets = {
             'sender': forms.TextInput(attrs={
                 'class': 'form-input',
                 'placeholder': 'Sender name (e.g. John Doe)',
                 'id': 'sender',
+            }),
+            'sender_email': forms.EmailInput(attrs={
+                'class': 'form-input',
+                'placeholder': 'Sender email (e.g. john@example.com)',
+                'id': 'sender-email',
             }),
             'subject': forms.TextInput(attrs={
                 'class': 'form-input',

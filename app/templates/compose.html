@@ -22,6 +22,20 @@
 
             <div class="form-divider"></div>
 
+            <div class="form-row" id="sender-email-row">
+                <label for="sender-email" class="form-label">Sender Email</label>
+                {{ form.sender_email }}
+            </div>
+
+            <div class="form-divider"></div>
+
+            <div class="form-row" id="confirm-sender-email-row">
+                <label for="confirm-sender-email" class="form-label">Confirm Email</label>
+                {{ form.confirm_sender_email }}
+            </div>
+
+            <div class="form-divider"></div>
+
             <div class="form-row" id="subject-row">
                 <label for="subject" class="form-label">Subject</label>
                 {{ form.subject }}

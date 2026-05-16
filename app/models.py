@@ -11,6 +11,11 @@ class Email(models.Model):
         blank=True,
         help_text='Sender name displayed in inbox',
     )
+    sender_email = models.EmailField(
+        max_length=255,
+        default='sender@example.com',
+        help_text='Sender email address',
+    )
     recipient = models.EmailField(
         max_length=255,
         default='me@gmail.com',
