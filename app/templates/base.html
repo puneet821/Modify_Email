@@ -139,6 +139,28 @@
             {% block content %}{% endblock %}
         </main>
     </div>
+    
+    <!-- Offline View Modal -->
+    <div id="offline-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button id="close-modal" class="icon-btn">
+                    <span class="material-icons-outlined">arrow_back</span>
+                </button>
+                <h3 id="modal-subject"></h3>
+            </div>
+            <div class="modal-body">
+                <div class="modal-meta">
+                    <div id="modal-sender-avatar" class="sender-avatar"></div>
+                    <div class="sender-info">
+                        <strong id="modal-sender"></strong>
+                        <span id="modal-sender-email" class="sender-email"></span>
+                    </div>
+                </div>
+                <div id="modal-email-body" class="email-body"></div>
+            </div>
+        </div>
+    </div>
 
     <script src="{% static 'app.js' %}"></script>
 </body>

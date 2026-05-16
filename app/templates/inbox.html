@@ -100,12 +100,14 @@
     {
         "id": "{{ email.pk }}",
         "sender": "{{ email.sender|escapejs }}",
+        "sender_email": "{{ email.sender_email|escapejs }}",
         "subject": "{{ email.subject|escapejs }}",
         "body": "{{ email.body|escapejs }}",
         "snippet": "{{ email.snippet|escapejs }}",
         "date": "{{ email.received_date|date:'M d' }}",
         "is_read": {{ email.is_read|yesno:"true,false" }},
         "is_starred": {{ email.is_starred|yesno:"true,false" }},
+        "folder": "{{ email.folder }}",
         "detail_url": "{% url 'app:email_detail' email.pk %}",
         "delete_url": "{% url 'app:delete_email' email.pk %}"
     }{% if not forloop.last %},{% endif %}

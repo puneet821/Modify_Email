@@ -180,69 +180,102 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ---- Local Device Persistence (Safe Sync) ----
+    // ---- Local Device Persistence (Enhanced Sync) ----
     const emailDataEl = document.getElementById('email-data');
+    const offlineModal = document.getElementById('offline-modal');
+    const closeModal = document.getElementById('close-modal');
+
+    function openOfflineEmail(email) {
+        if (!offlineModal) return;
+        document.getElementById('modal-subject').textContent = email.subject || '(no subject)';
+        document.getElementById('modal-sender').textContent = email.sender || 'Unknown';
+        document.getElementById('modal-sender-email').textContent = `<${email.sender_email || 'unknown@example.com'}>`;
+        document.getElementById('modal-sender-avatar').textContent = (email.sender || 'U').charAt(0).toUpperCase();
+        document.getElementById('modal-email-body').textContent = email.body || '';
+        offlineModal.classList.add('show');
+    }
+
+    if (closeModal) {
+        closeModal.addEventListener('click', () => offlineModal.classList.remove('show'));
+    }
+    if (offlineModal) {
+        offlineModal.addEventListener('click', (e) => {
+            if (e.target === offlineModal) offlineModal.classList.remove('show');
+        });
+    }
+
     if (emailDataEl) {
         const serverEmails = JSON.parse(emailDataEl.textContent);
         let localEmails = JSON.parse(localStorage.getItem('localEmails') || '[]');
 
-        // Sync server emails into local storage
+        // Sync logic: merge server data into local storage
         serverEmails.forEach(serverMail => {
             const index = localEmails.findIndex(m => m.id === serverMail.id);
             if (index === -1) {
                 localEmails.push(serverMail);
             } else {
-                localEmails[index] = serverMail;
+                // Update existing with potential changes (starred, read, etc)
+                localEmails[index] = { ...localEmails[index], ...serverMail };
             }
         });
 
-        // Limit to last 200 emails
-        if (localEmails.length > 200) localEmails = localEmails.slice(-200);
+        // Limit storage to last 500 emails to prevent bloat
+        if (localEmails.length > 500) localEmails = localEmails.slice(-500);
         localStorage.setItem('localEmails', JSON.stringify(localEmails));
 
         const emailList = document.getElementById('email-list');
         const emptyState = document.getElementById('empty-inbox');
         
+        // If the server returns nothing (or we are offline), restore from local storage
         if (emptyState && !window.is_search && localEmails.length > 0) {
-            emailList.innerHTML = '';
-            localEmails.slice().reverse().forEach(email => {
-                const row = document.createElement('div');
-                row.className = `email-row row-restored ${email.is_read ? '' : 'unread'}`;
-                row.innerHTML = `
-                    <div class="email-row-left">
-                        <label class="checkbox-wrapper"><input type="checkbox" class="email-checkbox"><span class="checkmark"></span></label>
-                        <span class="star-btn ${email.is_starred ? 'starred' : ''}" style="margin-left: 8px;">
-                            <span class="material-icons-outlined" style="font-size: 20px;">
-                                ${email.is_starred ? 'star' : 'star_border'}
+            // Filter by folder if possible (default to inbox if not specified)
+            const pathParts = window.location.pathname.split('/').filter(p => p);
+            const currentFolder = pathParts[pathParts.length - 1] || 'inbox';
+            
+            const folderEmails = localEmails.filter(m => m.folder === currentFolder || (currentFolder === 'starred' && m.is_starred));
+
+            if (folderEmails.length > 0) {
+                emailList.innerHTML = '';
+                folderEmails.slice().reverse().forEach(email => {
+                    const row = document.createElement('div');
+                    row.className = `email-row row-restored ${email.is_read ? '' : 'unread'}`;
+                    row.innerHTML = `
+                        <div class="email-row-left">
+                            <label class="checkbox-wrapper"><input type="checkbox" class="email-checkbox"><span class="checkmark"></span></label>
+                            <span class="star-btn ${email.is_starred ? 'starred' : ''}" style="margin-left: 8px;">
+                                <span class="material-icons-outlined" style="font-size: 20px;">
+                                    ${email.is_starred ? 'star' : 'star_border'}
+                                </span>
                             </span>
-                        </span>
-                    </div>
-                    <a href="${email.detail_url}" class="email-row-link">
-                        <span class="email-sender">${email.sender}</span>
-                        <div class="email-content-preview">
-                            <span class="email-subject">${email.subject}</span>
-                            <span class="email-snippet"> — ${email.snippet}</span>
                         </div>
-                        <span class="email-date">${email.date}</span>
-                    </a>
-                    <div class="email-row-actions">
-                        <span class="icon-btn" title="Saved on device">
-                            <span class="material-icons-outlined">offline_pin</span>
-                        </span>
-                    </div>
-                `;
-                
-                row.addEventListener('click', (e) => {
-                    if (!e.target.closest('.checkbox-wrapper') && !e.target.closest('.star-btn')) {
-                        window.location.href = email.detail_url;
-                    }
+                        <div class="email-row-link" style="cursor: pointer;">
+                            <span class="email-sender">${email.sender}</span>
+                            <div class="email-content-preview">
+                                <span class="email-subject">${email.subject}</span>
+                                <span class="email-snippet"> — ${email.snippet}</span>
+                            </div>
+                            <span class="email-date">${email.date}</span>
+                        </div>
+                        <div class="email-row-actions">
+                            <span class="icon-btn" title="Saved on device">
+                                <span class="material-icons-outlined" style="color: var(--green);">offline_pin</span>
+                            </span>
+                        </div>
+                    `;
+                    
+                    row.addEventListener('click', (e) => {
+                        if (!e.target.closest('.checkbox-wrapper') && !e.target.closest('.star-btn')) {
+                            // Try to go to detail page, but if it fails (offline), open modal
+                            openOfflineEmail(email);
+                        }
+                    });
+                    
+                    emailList.appendChild(row);
                 });
                 
-                emailList.appendChild(row);
-            });
-            
-            const countEl = document.getElementById('email-count');
-            if (countEl) countEl.innerHTML = `1–${localEmails.length} <span style="color: var(--green); font-weight: bold; margin-left: 8px;">✔ Saved on Device</span>`;
+                const countEl = document.getElementById('email-count');
+                if (countEl) countEl.innerHTML = `1–${folderEmails.length} <span style="color: var(--green); font-weight: bold; margin-left: 8px;">✔ Saved Locally</span>`;
+            }
         }
     }
 });
